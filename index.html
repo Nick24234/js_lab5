@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <title>Pixel Hunt</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 10px;
+      background: linear-gradient(#ddd, #888);
+      text-align: center;
+      height: 100vh;
+    }
+    h1 {
+      margin-bottom: 10px;
+    }
+    .controls {
+      margin-bottom: 20px;
+    }
+    .controls label {
+      margin-right: 10px;
+      font-size: 14px;
+    }
+    #gameArea {
+      width: 90%;
+      height: 600px;
+      margin: 0 auto;
+      position: relative;
+      border: 2px solid #c0c0c0;
+      background: #fff;
+      border-radius: 20px;
+      overflow: hidden;
+    }
+    #score {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      font-size: 18px;
+      color: #333;
+    }
+    #timer {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      font-size: 18px;
+      color: #333;
+    }
+    .pixel {
+      width: 40px;
+      height: 40px;
+      position: absolute;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>Pixel Hunt</h1>
+  <div class="controls">
+    <label>
+      Choose difficulty:
+      <select id="difficulty">
+        <option value="">--Please choose an option--</option>
+        <option value="lazy">Lazy</option>
+        <option value="normal">Normal</option>
+        <option value="hard">Catch me if you can</option>
+      </select>
+    </label>
+    <label>
+      Choose color:
+      <select id="color">
+        <option value="">--Please choose an option--</option>
+        <option value="red">Red</option>
+        <option value="green">Green</option>
+        <option value="blue">Blue</option>
+      </select>
+    </label>
+    <button id="startBtn">Start</button>
+  </div>
+
+  <div id="gameArea">
+    <div id="score">Score: 0</div>
+    <div id="timer">Time left: 0.0s</div>
+  </div>
+
+  <script>
+    const difficultySelect = document.getElementById('difficulty');
+    const colorSelect      = document.getElementById('color');
+    const startBtn         = document.getElementById('startBtn');
+    const gameArea         = document.getElementById('gameArea');
+
+    let timerInterval;
+    let score;
+    let remainingTime;
+
+    startBtn.addEventListener('click', () => {
+      const diff  = difficultySelect.value;
+      const color = colorSelect.value;
+      if (!diff || !color) {
+        alert('Будь ласка, оберіть і складність, і колір.');
+        return;
+      }
+      initGame(diff, color);
+    });
+
+    function initGame(diff, color) {
+      clearInterval(timerInterval);
+      gameArea.innerHTML = '<div id="score">Score: 0</div><div id="timer">Time left: 0.0s</div>';
+      score = 0;
+      const scoreElem = document.getElementById('score');
+      const timerElem = document.getElementById('timer');
+
+
+      const pixel = document.createElement('div');
+      pixel.classList.add('pixel');
+      pixel.style.backgroundColor = color;
+      gameArea.appendChild(pixel);
+
+
+      let intervalTime;
+      switch (diff) {
+        case 'lazy':   intervalTime = 4000; break;
+        case 'normal': intervalTime = 2000; break;
+        case 'hard':   intervalTime = 1000;  break;
+      }
+      remainingTime = intervalTime;
+
+      function updateTimer() {
+        remainingTime -= 100;
+        if (remainingTime <= 0) {
+          clearInterval(timerInterval);
+          alert('Game Over!');
+          return;
+        }
+        timerElem.textContent = 'Time left: ' + (remainingTime / 1000).toFixed(1) + 's';
+      }
+
+      function movePixel() {
+        const maxX = gameArea.clientWidth  - pixel.clientWidth;
+        const maxY = gameArea.clientHeight - pixel.clientHeight;
+        const x = Math.random() * maxX;
+        const y = Math.random() * maxY;
+        pixel.style.left = x + 'px';
+        pixel.style.top  = y + 'px';
+        remainingTime = intervalTime;
+        timerElem.textContent = 'Time left: ' + (remainingTime / 1000).toFixed(1) + 's';
+      }
+
+      pixel.addEventListener('click', () => {
+        score++;
+        scoreElem.textContent = 'Score: ' + score;
+        movePixel();
+      });
+
+      
+      movePixel();
+      timerInterval = setInterval(updateTimer, 100);
+    }
+  </script>
+</body>
+</html>
