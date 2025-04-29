@@ -84,76 +84,101 @@
 
   <script>
     const difficultySelect = document.getElementById('difficulty');
-    const colorSelect      = document.getElementById('color');
-    const startBtn         = document.getElementById('startBtn');
-    const gameArea         = document.getElementById('gameArea');
+    const colorSelect = document.getElementById('color');
+    const startBtn = document.getElementById('startBtn');
+    const gameArea = document.getElementById('gameArea');
 
     let timerInterval;
-    let score;
+    let score = 0;
     let remainingTime;
+    let intervalTime;
+    let isGameActive = false;
+    let timerStarted = false;
+    let pixel;
+    let scoreElem;
+    let timerElem;
 
     startBtn.addEventListener('click', () => {
-      const diff  = difficultySelect.value;
+      const diff = difficultySelect.value;
       const color = colorSelect.value;
+
       if (!diff || !color) {
         alert('Будь ласка, оберіть і складність, і колір.');
         return;
       }
+
       initGame(diff, color);
     });
 
     function initGame(diff, color) {
       clearInterval(timerInterval);
-      gameArea.innerHTML = '<div id="score">Score: 0</div><div id="timer">Time left: 0.0s</div>';
+      isGameActive = true;
+      timerStarted = false;
       score = 0;
-      const scoreElem = document.getElementById('score');
-      const timerElem = document.getElementById('timer');
 
+      gameArea.innerHTML = `
+        <div id="score">Score: 0</div>
+        <div id="timer">Time left: 0.0s</div>
+      `;
 
-      const pixel = document.createElement('div');
+      scoreElem = document.getElementById('score');
+      timerElem = document.getElementById('timer');
+
+      pixel = document.createElement('div');
       pixel.classList.add('pixel');
       pixel.style.backgroundColor = color;
       gameArea.appendChild(pixel);
 
-
-      let intervalTime;
       switch (diff) {
-        case 'lazy':   intervalTime = 4000; break;
+        case 'lazy': intervalTime = 4000; break;
         case 'normal': intervalTime = 2000; break;
-        case 'hard':   intervalTime = 1000;  break;
+        case 'hard': intervalTime = 1000; break;
       }
       remainingTime = intervalTime;
 
-      function updateTimer() {
-        remainingTime -= 100;
-        if (remainingTime <= 0) {
-          clearInterval(timerInterval);
-          alert('Game Over!');
-          return;
-        }
-        timerElem.textContent = 'Time left: ' + (remainingTime / 1000).toFixed(1) + 's';
-      }
-
-      function movePixel() {
-        const maxX = gameArea.clientWidth  - pixel.clientWidth;
-        const maxY = gameArea.clientHeight - pixel.clientHeight;
-        const x = Math.random() * maxX;
-        const y = Math.random() * maxY;
-        pixel.style.left = x + 'px';
-        pixel.style.top  = y + 'px';
-        remainingTime = intervalTime;
-        timerElem.textContent = 'Time left: ' + (remainingTime / 1000).toFixed(1) + 's';
-      }
-
       pixel.addEventListener('click', () => {
+        if (!isGameActive) return;
+
+        if (!timerStarted) {
+          timerStarted = true;
+          timerInterval = setInterval(updateTimer, 100);
+        }
+
         score++;
         scoreElem.textContent = 'Score: ' + score;
+
         movePixel();
       });
 
-      
       movePixel();
-      timerInterval = setInterval(updateTimer, 100);
+      updateTimerText();
+    }
+
+    function movePixel() {
+      const maxX = gameArea.clientWidth - pixel.clientWidth;
+      const maxY = gameArea.clientHeight - pixel.clientHeight;
+      const x = Math.random() * maxX;
+      const y = Math.random() * maxY;
+      pixel.style.left = x + 'px';
+      pixel.style.top = y + 'px';
+
+      remainingTime = intervalTime;
+      updateTimerText();
+    }
+
+    function updateTimer() {
+      remainingTime -= 100;
+      if (remainingTime <= 0) {
+        clearInterval(timerInterval);
+        isGameActive = false;
+        alert('Game Over!');
+        return;
+      }
+      updateTimerText();
+    }
+
+    function updateTimerText() {
+      timerElem.textContent = 'Time left: ' + (remainingTime / 1000).toFixed(1) + 's';
     }
   </script>
 </body>
